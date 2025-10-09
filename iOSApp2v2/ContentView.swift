@@ -5,18 +5,22 @@
 //  Created by Mac User on 2025-10-02.
 //
 
-//
-//  ContentView.swift
-//  iOSApp2v2
-//
-//  Created by Mac User on 2025-10-02.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     @State private var clues: [Clue] = []
-    @State private var foundClues: Set<String> = []
+
+    // Persistent found clues using AppStorage
+    @AppStorage("foundCluesData") private var foundCluesData: Data = Data()
+    
+    private var foundClues: Set<String> {
+        get {
+            (try? JSONDecoder().decode(Set<String>.self, from: foundCluesData)) ?? []
+        }
+        set {
+            foundCluesData = (try? JSONEncoder().encode(newValue)) ?? Data()
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -33,7 +37,14 @@ struct ContentView: View {
                 }
             }
             .navigationDestination(for: Clue.self) { clue in
-                ClueDetailView(clue: clue, foundClues: $foundClues)
+                ClueDetailView(clue: clue, foundClues: Binding(
+                    get: { foundClues },
+                    set: { newValue in
+                        // Save new progress whenever it changes
+                        let encoded = try? JSONEncoder().encode(newValue)
+                        foundCluesData = encoded ?? Data()
+                    }
+                ))
             }
             .navigationTitle("Brampton Scavenger Hunt")
             .toolbar {
@@ -42,12 +53,13 @@ struct ContentView: View {
                 }
             }
             .onAppear {
-                // load fake data
+                // Load mock or API data
                 clues = MockData.sampleClues
             }
         }
     }
 }
+
 
 
 

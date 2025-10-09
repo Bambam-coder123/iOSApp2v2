@@ -1,6 +1,6 @@
 //
 //  ClueDetailView.swift
-//  iOSApp2v2
+//  BramptonScavengerHunt
 //
 //  Created by Mac User on 2025-10-02.
 //
@@ -13,71 +13,77 @@ struct ClueDetailView: View {
     @Binding var foundClues: Set<String>
     @State private var selectedImage: UIImage?
     
+    // Mock "next clues" for demo — replace with actual logic
+    let nextClues: [Clue] = MockData.sampleClues.shuffled()
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                Text(clue.name)
+                Text(clue.name ?? "Unknown Clue")
                     .font(.largeTitle)
                     .bold()
+                    .padding(.top)
                 
-                CardFlipView {
-                    Text("Tap to Reveal Clue")
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .frame(height: 100)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(12)
-                } back: {
-                    Text(clue.hint)
-                        .font(.body)
-                        .foregroundColor(.black)
+                // MARK: Flippable Card
+                if let selectedImage = selectedImage {
+                    FlippableCardView {
+                        // FRONT — photo proof
+                        Image(uiImage: selectedImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 250)
+                            .cornerRadius(12)
+                            .overlay(
+                                Text("Tap to Flip")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(6)
+                                    .background(Color.black.opacity(0.6))
+                                    .cornerRadius(8)
+                                    .padding(),
+                                alignment: .bottomTrailing
+                            )
+                    } back: {
+                        // BACK — next clues list
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Next Clues:")
+                                .font(.title3)
+                                .bold()
+                            ForEach(nextClues.prefix(3), id: \.id) { clue in
+                                Text("🔍 \(clue.name ?? "Unnamed Clue")")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: 250)
                         .padding()
-                        .frame(maxWidth: .infinity)
                         .background(Color.yellow.opacity(0.2))
                         .cornerRadius(12)
-                }
-                .padding(.vertical, 10)
-                
-                Text("Location: \(clue.location)")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                
-                if let imageUrl = clue.imageUrl,
-                   let url = URL(string: imageUrl) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                        case .success(let image):
-                            image.resizable()
-                                .scaledToFit()
-                                .frame(height: 200)
-                        case .failure:
-                            Image(systemName: "photo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 200)
-                                .foregroundColor(.gray)
-                        @unknown default:
-                            EmptyView()
-                        }
                     }
+                } else {
+                    // Before photo is selected
+                    Text("Select a photo to reveal your flippable clue card!")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding()
                 }
                 
                 Divider()
                 
+                // MARK: Photo Picker
                 Text("Upload Proof of Item")
                     .font(.headline)
                 
                 PhotoPickerView(selectedImage: $selectedImage)
                 
+                // MARK: Mark as Found
                 if selectedImage != nil {
                     Button("Mark as Found") {
                         foundClues.insert(clue.id)
                     }
                     .buttonStyle(.borderedProminent)
                 }
+
             }
             .padding()
         }
@@ -85,6 +91,7 @@ struct ClueDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
+
 
 
 
