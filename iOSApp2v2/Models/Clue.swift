@@ -1,6 +1,6 @@
 //
 //  Clue.swift
-//  iOSApp2v2
+//  BramptonScavengerHunt
 //
 
 import Foundation
@@ -12,10 +12,3 @@ struct Clue: Identifiable, Codable, Hashable {
     let location: String
     let imageUrl: String
 }
-
-
-
-
-
-
-
